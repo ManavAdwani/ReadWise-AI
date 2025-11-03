@@ -1,7 +1,7 @@
 console.log("Background service worker loaded ✅");
 
-const HF_API_KEY = "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";
-const API_URL = "https://router.huggingface.co/hf-inference";
+import { HF_API_KEY, API_URL } from './config.js';
+
 
 async function queryHuggingFace(prompt) {
   try {
