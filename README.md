@@ -1,7 +1,5 @@
 # ReadWise-AI
-Here’s a clean, professional **project description** you can use for your GitHub repo **PageAI** 👇
 
----
 
 ### 🧠 PageAI — Smart Webpage Summarizer & Q&A Assistant
 
@@ -28,5 +26,3 @@ With PageAI, you can save time, boost productivity, and focus only on what matte
 * **Platform:** Chrome Extension (Manifest v3)
 
 ---
-
-Would you like me to extend this into a **complete README.md** (with installation steps, usage, permissions, and project structure)? That would make your repo look professional and ready for publishing.
