@@ -1,56 +1,45 @@
-console.log("Background service worker loaded ✅");
+import { GROQ_API_KEY, API_URL } from "./config.js";
 
-import { HF_API_KEY, API_URL } from './config.js';
+console.log("✅ Background service worker loaded");
 
-
-async function queryHuggingFace(prompt) {
+async function queryGroq(prompt) {
   try {
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${HF_API_KEY}`,
+        "Authorization": `Bearer ${GROQ_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/Llama-3.1-8B-Instruct",
-        inputs: prompt,
-        parameters: { max_new_tokens: 200, temperature: 0.7 }
+        model: "llama-3.3-70b-versatile", // ✅ Working model
+        messages: [
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 300,
+        temperature: 0.7
       })
     });
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("HF API error:", text);
-      return `Error: ${text}`;
-    }
+    const data = await response.json();
+    console.log("Groq response:", data);
 
-    const result = await response.json();
-    console.log("Raw HF result:", result);
+    return data?.choices?.[0]?.message?.content || "No response";
 
-    if (Array.isArray(result) && result[0]?.generated_text) {
-      return result[0].generated_text;
-    } else if (result?.generated_text) {
-      return result.generated_text;
-    } else if (result?.outputs?.[0]?.text) {
-      return result.outputs[0].text;
-    } else {
-      return JSON.stringify(result);
-    }
-
-  } catch (err) {
-    console.error("Fetch failed:", err);
+  } catch (error) {
+    console.error("Groq API error:", error);
     return "Network error.";
   }
 }
 
+// Listen for messages from the popup/content script
 chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
-  console.log("📩 Received message in background:", req);
+  console.log("📩 Received request:", req);
 
-  if (req.action === "huggingface_query") {
-    queryHuggingFace(req.prompt).then(answer => {
-      console.log("✅ Sending back answer:", answer);
+  if (req.action === "groq_query") {
+    queryGroq(req.prompt).then(answer => {
+      console.log("✅ Sending response:", answer);
       sendResponse({ answer });
     });
-    return true;
+    return true; // keeps message channel alive
   }
 });

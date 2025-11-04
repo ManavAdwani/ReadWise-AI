@@ -3,7 +3,6 @@ let chatHistory = "You are a helpful assistant answering questions about webpage
 document.getElementById("summarize").addEventListener("click", async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
-  // Guard against unsupported pages like chrome://, edge://, about:blank, etc.
   const tabUrl = tab?.url || "";
   if (!/^https?:\/\//i.test(tabUrl)) {
     document.getElementById("summary").innerText = "This page type isn't supported. Open a normal website and try again.";
@@ -23,12 +22,12 @@ document.getElementById("summarize").addEventListener("click", async () => {
     }
 
     document.getElementById("summary").innerText = "Summarizing...";
-    const pageText = response.text.slice(0, 5000); // limit for HF free tier
 
+    const pageText = response.text.slice(0, 5000);
     const prompt = `Summarize this webpage:\n\n${pageText}`;
-    chrome.runtime.sendMessage({ action: "huggingface_query", prompt }, (res) => {
+
+    chrome.runtime.sendMessage({ action: "groq_query", prompt }, (res) => {
       if (chrome.runtime.lastError) {
-        console.error("Message error:", chrome.runtime.lastError);
         document.getElementById("summary").innerText = "Error connecting to background.";
         return;
       }
@@ -48,16 +47,14 @@ document.getElementById("ask").addEventListener("click", async () => {
   chatHistory += `User: ${question}\nAssistant:`;
 
   chrome.runtime.sendMessage(
-    { action: "huggingface_query", prompt: chatHistory },
+    { action: "groq_query", prompt: chatHistory },
     (res) => {
       if (chrome.runtime.lastError) {
-        console.error("Message error:", chrome.runtime.lastError);
         chatDiv.innerHTML += `<p><strong>AI:</strong> Error connecting to background.</p>`;
         return;
       }
 
       if (!res || !res.answer) {
-        console.error("No response received:", res);
         chatDiv.innerHTML += `<p><strong>AI:</strong> No response received.</p>`;
         return;
       }
